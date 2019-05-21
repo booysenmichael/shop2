@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content%}
+<table id="shoppinglist" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th width="25%">Item</th>
+            <th width="25%">List Price</th>
+            <th width="25%">Qty</th>
+            <th width="25%">Price</th>       
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items.all%}
+        <tr>
+            <td>{{ item.item }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.qty }}</td>
+            <td><input type="text" name ="price" class="form-control" id="price" pattern="[0-9]*" inputmode="numeric"></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block script%}
+<script>
+    $('#shoppinglist').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                title: 'Shopping List'
+            },
+            {
+                extend: 'pdfHtml5',
+                title: 'Shopping List'
+            },
+            { 
+                extend: 'csvHtml5',
+                title: 'Shopping List'
+            }
+        ]
+    });
+</script>
+
+{% endblock%}
+

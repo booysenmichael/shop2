@@ -1,0 +1,25 @@
+{% extends 'base.html'%}
+
+{% block content %}
+<div class="card w-100">
+    <a href="{% url 'items_add'%}"  class="btn btn-outline-primary">
+        <div class="card-body">
+            <h5 class="card-title text-center">Add Items</h5>
+        </div>
+    </a>
+</div>
+<div class="card w-100">
+    <a href="{% url 'items_home'%}" class="btn btn-outline-primary">
+        <div class="card-body">
+            <h5 class="card-title text-center">View and Compile Shopping List</h5>
+        </div>
+    </a>
+</div>
+<div class="card w-100">
+    <a href="{% url 'shoppinglist'%}" class="btn btn-outline-primary">
+        <div class="card-body">
+            <h5 class="card-title text-center">Start Shopping</h5>
+        </div>
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html'%}
+
+{% block content%}
+
+<form>
+    {% csrf_token%}
+    <div class="form-group">
+        <label for="item">Item</label>
+        <input type="text" name="item" class="form-control" id="item" aria-describedby="emailHelp" placeholder="Enter Item" required="required">
+    </div>
+    <div class="form-group">
+        <label for="price">Price</label>
+        <input type="text" name ="price" class="form-control" id="price" placeholder="Price">
+    </div>
+    <div class="form-group">
+        <label for="qty">Qty</label>
+        <input type="text" name ="qty" class="form-control" id="qty" placeholder="Quantity">
+    </div>
+    <div class="form-group">
+            <label for="retailerselect">Retailer</label>
+            <select class="form-control" id="retailerselect">
+                {% for retailer in retailers.all %}
+                <option value="{{retailer.id}}">{{retailer.retailer}}</option>
+                {% endfor %}
+            </select>
+          </div>
+    <div class="form-group form-check">
+        <input type="checkbox" class="form-check-input" id="mustget" name="mustget">
+        <label class="form-check-label" for="mustget">Must Get!</label>
+    </div>
+    <input type="hidden" name ="mustget_value" class="form-control" id="mustget_value">
+    
+<button type="submit" class="btn btn-primary" id="additem">Submit</button>
+</form>
+{% endblock %}
+
+{% block script%}
+<script>
+    $('#mustget').on('click',function(){
+        if($(this).prop("checked") == true){
+                $('#mustget_value').val('1')
+            }
+            else if($(this).prop("checked") == false){
+                $('#mustget_value').val('0')
+            }
+    })
+    $('#additem').on('click',function(e){
+        e.preventDefault();
+        $.ajax({
+            method: 'POST',
+            url: 'addItemsHandler',
+            data:{
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                item: $('#item').val(),
+                price: $('#price').val(),
+                qty: $('#qty').val(),
+                mustget: $('#mustget_value').val(),
+                retailer: $('#retailerselect').val(),
+            },
+            success:function(result){
+                if(result=='1'){
+                    $('#item').val('');
+                    $('#price').val('');
+                    $('#qty').val('');
+                    $('#mustget_value').val('');
+                    $('#retailerselect').val('0');
+                }else{
+                    alert("Data could not be inserted")
+                }
+                
+                             
+            },
+            error:function(result){
+
+            }
+        })
+    })
+</script>
+{% endblock %}
