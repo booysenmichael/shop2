@@ -9,6 +9,7 @@
 __pycache__/
 local_settings.py
 /shoppinglist/settings.py
+/shoppinglist/settings.*
 db.sqlite3
 /media
 /static
