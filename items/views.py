@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.core import serializers
 from .models import retailers
 from .models import items
+from django.contrib.auth.models import User
 
 import json
 
@@ -10,12 +11,20 @@ def serialdata(data):
         return serializers.serialize('json',data)
 
 def home(request):
-        allItems = items.objects.all()
-        return render(request,'items/viewitems.html',{'items':allItems})
+        if not request.user.is_authenticated:
+                return render(request,'home/login.html')
+        else:
+                allItems = items.objects.all()
+                profile = User.objects.get(username = request.user)
+                return render(request,'items/viewitems.html',{'items':allItems})
 
 def additems(request):
-        retailers_data = retailers.objects.filter(disabled=0).order_by('id')
-        return render(request, 'items/additems.html',{'retailers':retailers_data})
+        if not request.user.is_authenticated:
+                return render(request,'home/login.html')
+        else:
+                profile = User.objects.get(username = request.user)
+                retailers_data = retailers.objects.filter(disabled=0).order_by('id')
+                return render(request, 'items/additems.html',{'retailers':retailers_data})
 
 def addItemsHandler(request):
     if request.method == 'POST':
@@ -49,5 +58,12 @@ def addItemToListHandler(request):
                         return HttpResponse('0') #Fail
 
 def shoppinglist(request):
-        itemsShopping = items.objects.filter(current=1).order_by('id')
-        return render(request,'items/startshopping.html',{'items':itemsShopping})
+        if not request.user.is_authenticated:
+                return render(request,'home/login.html')
+        else:
+                profile = User.objects.get(username = request.user)
+                itemsShopping = items.objects.filter(current=1).order_by('id')
+                return render(request,'items/startshopping.html',{'items':itemsShopping})
+
+
+       
