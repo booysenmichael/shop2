@@ -3,9 +3,11 @@ from django.http import JsonResponse
 from django.core import serializers
 from .models import retailers
 from .models import items
+from django.core import serializers
+import json
 from django.contrib.auth.models import User
 
-import json
+
 
 def serialdata(data):
         return serializers.serialize('json',data)
@@ -28,17 +30,21 @@ def additems(request):
 
 def addItemsHandler(request):
     if request.method == 'POST':
+        current_user = request.user
+     
         newItems = items()
         newItems.item = str(request.POST['item'])
         newItems.qty = request.POST['qty']
         newItems.price = request.POST['price']
         newItems.retailer_id = request.POST['retailer']
         newItems.mustget = request.POST['mustget']
+        newItems.addedBy = User.objects.get(pk=request.user.id)
+
         try:
                 newItems.save()
                 return HttpResponse('1')
-        except:
-                return HttpResponse('0')
+        except Exception as e:
+                return HttpResponse(e)
         
 def addItemToListHandler(request):
         if request.method == 'POST':

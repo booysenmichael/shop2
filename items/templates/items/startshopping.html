@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
 
 {% block content%}
+
 <table id="shoppinglist" class="display" style="width:100%">
     <thead>
         <tr>
-            <th width="25%">Item</th>
-            <th width="25%">List Price</th>
-            <th width="25%">Qty</th>
-            <th width="25%">Price</th>       
+            <th>Item</th>
+            <th>List Price</th>
+            <th>Price</th>
+            <th>Qty</th>
+            <th>Total</th>       
         </tr>
     </thead>
     <tbody>
@@ -15,12 +17,18 @@
         <tr>
             <td>{{ item.item }}</td>
             <td>{{ item.price }}</td>
-            <td>{{ item.qty }}</td>
-            <td><input type="text" name ="price" class="form-control" id="price" pattern="[0-9]*" inputmode="numeric"></td>
+            <td><input type="text" name ="price" class="form-control price" pattern="[0-9]*" id="price_{{item.id}}" counter = "{{item.id}}" inputmode="numeric" value="0"></td>
+            <td><input type="text" name ="price" class="form-control qty" pattern="[0-9]*" id="qty_{{item.id}}" counter = "{{item.id}}" inputmode="numeric" value="{{ item.qty}}"></td>
+            <td><input type="text" name ="price" class="form-control lineTotal" pattern="[0-9]*" id="total_{{item.id}}" counter = "{{item.id}}" inputmode="numeric" value="0" disabled="disabled"></td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<input class="form-control" type="text" readonly id="grandTotal">
+
+
+
 {% endblock %}
 
 {% block script%}
@@ -42,7 +50,44 @@
             }
         ]
     });
+
+    function calcTotal(tPrice,tQty,tCounter){
+        console.log(tQty)
+        price = parseFloat(tPrice).toFixed(2)
+        qty = parseFloat(tQty).toFixed(2)
+        console.log(price*qty)
+        total = price*qty
+        $('#total_'+tCounter).val(total)
+
+        tGrandTotal = $('#grandTotal').val();
+        if(tGrandTotal==''){
+            tGrandTotal = 0.00
+        }
+        grandTotalCurrent = parseFloat(tGrandTotal);
+        grantTotalNew = total+grandTotalCurrent;
+        $('#grandTotal').val();
+        $('#grandTotal').val(parseFloat(grantTotalNew).toFixed(2));
+
+
+    }
+
+    $('.price').on('focusout',function(){
+        let tCounter = $(this).attr('counter');
+        let tPrice = $(this).val();
+        let tQty = $('#qty_'+tCounter).val();
+        calcTotal(tPrice,tQty,tCounter)
+    })
+
+    $('.qty').on('focusout',function(){
+        let tCounter = $(this).attr('counter');
+        let tQty = $(this).val();
+        let tPrice = $('#price_'+tCounter).val();
+        calcTotal(tPrice,tQty,tCounter)
+    })
+
 </script>
 
 {% endblock%}
+
+
 
