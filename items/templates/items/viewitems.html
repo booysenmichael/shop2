@@ -1,93 +1,274 @@
 {% extends 'base.html' %}
 
 {% block content%}
+{%csrf_token%}
+<div class="modal fade bd-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="shoppingListNameModal">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalCenterTitle">Shopping List Name</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <select class="form-control" id="shoppingListSelect">
+                    <option value="">-----</option>
+                    <option value="New">New</option>
+                    {%for listName in shoppingListName.all%}   
+                    <option value="{{listName.id}}">{{listName.list_name}}</option>
+                    {%endfor%}
+                </select>
+                <div id = "listNameInput" style="visibility: hidden">
+                    <input type="text" name="listname" class="form-control" id="listname" aria-describedby="emailHelp" placeholder="Enter List Name" required="required">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary continue_shoplist">Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+<input id="selectedList"/>
+
+<div id="theTable">
+    
+</div>
+   <!--
 <table id="itemlist" class="display" style="width:100%">
         <thead>
             <tr>
-                <th>Item</th>
+                <th>Name</th>
                 <th>Price</th>
                 <th>Qty</th>
                 <th>Retailer</th>
-                <th>Must Get</th>
-                <th>Action</th>
-                <th>Listed</th>               
+              
+                         
             </tr>
         </thead>
         <tbody>
-            {% for item in items.all %}
-                <tr>
-                <td>{{ item.item}}</td>
-                <td>{{ item.price}}</td>
-                <td>{{ item.qty}}</td>
-                <td>{{ item.retailer.retailer}}</td>
-                {% if item.mustget == 1 %}
-                <td>Yes</td>
-                {% else %}
-                <td>No</td>
-                {% endif%}
-                {% if item.current == 1 %}
-                <td><span><button type="button" class="btn btn-outline-danger btn-sm btn-block additemtolist" itemid="{{ item.id}}">Remove Item</button></span></td>
-                <td><div id="listed_{{item.id}}"><strong>Yes</strong></div></td>
-                {% else %}
-                <td><span><button type="button" class="btn btn-outline-primary btn-sm btn-block additemtolist" itemid="{{ item.id}}">Add to List</button></span></td>
-                <td><div id="listed_{{item.id}}"></div></td>
-                {% endif %}
-                
-                </tr>
-            {% endfor%}
+         
+        {% for item in items.all %}
+            <tr>
+            <td>{{ item.item}}</td>
+            <td><input type="text" value="{{ item.price}}" id="price_{{item.id}}"/></td>
+            <td><input type="text" value="{{ item.qty}}" id="qty_{{item.id}}"/></td>
+            <td>{{ item.retailer.retailer}}</td>
+            {% if item.mustget == 1 %}
+            <td>Yes</td>
+            {% else %}
+            <td>No</td>
+            {% endif%}
+            {% if item.current == 1 %}
+            <td><span><button type="button" class="btn btn-outline-danger btn-sm btn-block additemtolist" itemid="{{ item.id}}">Remove Item</button></span></td>
+            <td><div id="listed_{{item.id}}"><strong>Yes</strong></div></td>
+            {% else %}
+            <td><span><button type="button" class="btn btn-outline-primary btn-sm btn-block additemtolist" itemid="{{ item.id}}">Add to List</button></span></td>
+            <td><div id="listed_{{item.id}}"></div></td>
+            {% endif %}
+            </tr>
+        {% endfor%}
+      
+       
         </tbody>
     </table>
-    {%csrf_token%}
+      -->
+    <button class="btn btn-info" id="addtolist">Add Items to List</button>
+    <button class="btn btn-info continue_shoplist" id="backtolist" style="visibility: hidden">Back to List</button>
+
+
 {% endblock%}
 
 {% block script%}
 <script>
-$('#itemlist').DataTable();
-$('.additemtolist').on('click',function(e){
-    var tCurrentState = $(this).html();
-    console.log(tCurrentState)
-    if(tCurrentState=='Remove Item'){
-        tCurrentState = 'Remove'
-    }else{
-        tCurrentState = 'Add'
-    }
-    console.log(tCurrentState)
-    e.preventDefault();
-    console.log('Adding item to current list')
-    var tID = $(this).attr('itemid');
-    $.ajax({
-        method: 'POST',
-        url: 'addItemToListHandler',
-        data: {
-            id: tID,
-            state: tCurrentState,
-            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
-        },
-        success:function(result){
-            console.log(result)
-            if(result==1){
-                if(tCurrentState=='Remove'){
-                    $('[itemid='+tID+']').html('Add Item')
-                    $('[itemid='+tID+']').removeClass('btn-outline-danger')
-                    $('[itemid='+tID+']').addClass('btn-outline-primary')
-                    $('#listed_'+tID+'').empty();
-                }else{
-                    $('[itemid='+tID+']').html('Remove Item')
-                    $('[itemid='+tID+']').removeClass('btn-outline-primary')
-                    $('[itemid='+tID+']').addClass('btn-outline-danger')
-                    $('#listed_'+tID+'').empty().append('<strong>Yes</strong>');
-                }
-                
-               
-            }else{
-                alert('Failed to add item to list')
-            }
-        },
-        error:function(result){
+    var tNew = 0;//$('#itemlist').DataTable();
+    
+    function buildTable(tData){
+        tTable = "<table><thead>";
+        tTable += "<th>Name</th><th>Price</th><th>Qty</th><th>Retailer</th><th>Action</th></thead><tbody>"
+        $.each(tData,function(key,value){
+            tTable += "<tr><td>"+value['name']+"</td><td>"+value['price']+"</td><td>"+value['qty']+"</td><td>"+value['retailer']+"</td><td><button type='button' class='btn btn-outline-danger btn-sm btn-block removeitem' itemid='"+value['id']+"'>Remove Item</button></td></tr>";
+        })
+        tTable += "</tbody></table>"
+        $('#theTable').empty().append(tTable);
+        $('#theTable table').attr('id', 'itemlist').attr('class','display').css('width','100%');
 
+    }
+
+    function buildTable2(tData){
+        tTable = "<table><thead>";
+        tTable += "<th>Name</th><th>Price</th><th>Qty</th><th>Retailer</th><th>Must Get</th><th>Action</th></thead><tbody>"
+        $.each(tData,function(key,value){
+            tTable += "<tr><td>"+value['name']+"</td><td><input id='price_"+value['id']+"' value='"+value['price']+"'/></td><td><input id='qty_"+value['id']+"' value='"+value['qty']+"' /></td><td>"+value['retailer']+"</td><td>"+value['mustget']+"</td><td><button type='button' class='btn btn-outline-primary btn-sm btn-block additemtolist' itemid='"+value['id']+"'>Add to List</button></td></tr>";
+        })
+        tTable += "</tbody></table>"
+        $('#theTable').empty().append(tTable);
+        $('#theTable table').attr('id', 'itemlist').attr('class','display').css('width','100%');
+
+    }
+
+    $('#shoppingListNameModal').modal({
+            backdrop:'static',
+            show:true
+    });
+
+    $('#shoppingListSelect').on('change',function(e){
+        let tOption = $('#shoppingListSelect option:selected').val();
+        if(tOption=='New'){
+            $('#listNameInput').css('visibility','visible');
+            tNew = 1;
         }
-        
     })
-})
+   
+    $('#addtolist').on('click',function(e){
+        e.preventDefault();
+        $.ajax({
+            method: 'POST',
+            url: 'getAllItems',
+            data:{
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            },
+            success:function(result){
+                buildTable2(result)
+                $('#itemlist').dataTable();
+                $('#addtolist').css('visibility','hidden')
+                tNew=0;
+                $('#backtolist').css('visibility','visible')
+            },
+            error:function(result){
+                console.log(result)
+            }
+        })
+    })
+
+    $('.continue_shoplist').on('click',function(e){
+        e.preventDefault();
+        var listId =  $('#shoppingListSelect').val();
+        if(tNew==1){
+            if($('#listname').val()==''){
+                return false;
+            }
+            $.ajax({
+                method: 'POST',
+                url: 'addListHandler',
+                data:{
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                    listname: $('#listname').val()
+
+                },
+                success:function(result){
+                    console.log(result)
+                    if(result>0){
+                        $('#selectedList').val(result);
+                        $('#shoppingListNameModal').modal('hide');
+                        
+                    }
+                },
+                error:function(result){
+                    console.log(result)
+                    alert(result)
+                }
+            })
+        }else{
+            $.ajax({
+                method: 'POST',
+                url: 'getItemList',
+                data:{
+                    csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                    listId: listId,
+                },
+                success:function(result){
+                    console.log(result)
+                    buildTable(result)
+                    $('#itemlist').dataTable();
+                    $('#selectedList').val(listId);
+                    $('#shoppingListNameModal').modal('hide');
+                    $('#addtolist').css('visibility','visible')
+                    $('#backtolist').css('visibility','hidden')
+                },
+                error:function(result){
+                    console.log(result)
+                }
+            })
+        }
+    })
+
+    $('#theTable').on('click','#itemlist .removeitem',function(e){
+        var tID = $(this).attr('itemid');
+        $.ajax({
+            method: 'POST',
+            url: 'deleteItem',
+            data:{
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                tID: tID
+            },
+            success:function(result){
+                console.log(result)
+                buildTable(result)
+                $('#itemlist').dataTable();
+            },
+            error:function(result){
+                console.log(result)
+            }
+        })
+    })
+
+    $('#theTable').on('click','#itemlist .additemtolist',function(e){
+        var tCurrentState = $(this).html();
+        console.log(tCurrentState)
+        if(tCurrentState=='Remove Item'){
+            tCurrentState = 'Remove'
+        }else{
+            tCurrentState = 'Add'
+        }
+        console.log(tCurrentState)
+        e.preventDefault();
+        console.log('Adding item to current list')
+        var tID = $(this).attr('itemid');
+        var tQty = $('#qty_'+tID).val();
+        var tPrice = $('#price_'+tID).val();
+        console.log("Qty: "+tQty)
+
+        console.log(tID)
+        $.ajax({
+            method: 'POST',
+            url: 'addItemToListHandler',
+            data: {
+                id: tID,
+                state: tCurrentState,
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+                list: $('#selectedList').val(),
+                qty: tQty,
+                price: tPrice,
+            },
+            success:function(result){
+                console.log(result)
+                if(result==1){
+                    if(tCurrentState=='Remove'){
+                        $('[itemid='+tID+']').html('Add Item')
+                        $('[itemid='+tID+']').removeClass('btn-outline-danger')
+                        $('[itemid='+tID+']').addClass('btn-outline-primary')
+                        $('#listed_'+tID+'').empty();
+                    }else{
+                        $('[itemid='+tID+']').html('Remove Item')
+                        $('[itemid='+tID+']').css('visibility','hidden')
+                        //$('[itemid='+tID+']').removeClass('btn-outline-primary')
+                        //$('[itemid='+tID+']').addClass('btn-outline-danger')
+                        $('#listed_'+tID+'').empty().append('<strong>Yes</strong>');
+                       
+                    }
+                    
+                
+                }else{
+                    console.log(result)
+                    alert('Failed to add item to list')
+                }
+            },
+            error:function(result){
+                console.log(result)
+            }
+            
+        })
+    })
 </script>
 {% endblock%}
